@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<GridPane style="-fx-padding: 10 10 10 10; "
+          xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.marchliu.intheshell.SessionController">
+    <ListView style="-fx-padding: 5 5 5 5;"
+              fx:id="listView"
+              GridPane.columnIndex="0"
+              GridPane.rowIndex="0"
+              GridPane.columnSpan="3"
+              GridPane.vgrow="ALWAYS"
+              GridPane.hgrow="ALWAYS">
+        <GridPane.margin>
+            <Insets top="10" bottom="10.0" left="10" right="10.0"/>
+        </GridPane.margin>
+    </ListView>
+    <TextArea fx:id="textArea" GridPane.columnIndex="0" GridPane.rowIndex="1"
+              GridPane.rowSpan="3" GridPane.hgrow="ALWAYS" >
+        <GridPane.margin>
+            <Insets top="10" bottom="5.0" left="10" right="10.0"/>
+        </GridPane.margin>
+    </TextArea>
+    <CheckBox text="with context" GridPane.columnIndex="1" GridPane.rowIndex="1">
+        <GridPane.margin>
+            <Insets top="10" bottom="5.0" left="10" right="10.0"/>
+        </GridPane.margin>
+    </CheckBox>
+    <CheckBox prefHeight="37.0" prefWidth="135.0" text="auto clean if too long"
+              GridPane.columnIndex="1" GridPane.rowIndex="2">
+        <GridPane.margin>
+            <Insets top="10" bottom="10.0" left="10" right="10.0"/>
+        </GridPane.margin>
+    </CheckBox>
+    <Button mnemonicParsing="false" onAction="#onSendButtonClick" text="Chat"
+            GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.halignment="RIGHT"
+            fx:id="send">
+        <GridPane.margin>
+            <Insets top="10" bottom="10.0" left="10" right="10.0"/>
+        </GridPane.margin>
+    </Button>
+</GridPane>
+

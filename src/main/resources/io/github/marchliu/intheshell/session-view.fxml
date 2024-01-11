@@ -18,13 +18,13 @@
             <Insets top="10" bottom="10.0" left="10" right="10.0"/>
         </GridPane.margin>
     </ListView>
-    <TextArea fx:id="textArea" GridPane.columnIndex="0" GridPane.rowIndex="1"
-              GridPane.rowSpan="3" GridPane.hgrow="ALWAYS" >
+    <TextArea fx:id="editor" GridPane.columnIndex="0" GridPane.rowIndex="1"
+              GridPane.rowSpan="3" GridPane.hgrow="ALWAYS">
         <GridPane.margin>
             <Insets top="10" bottom="5.0" left="10" right="10.0"/>
         </GridPane.margin>
     </TextArea>
-    <CheckBox text="with context" GridPane.columnIndex="1" GridPane.rowIndex="1">
+    <CheckBox text="with context" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="withContext">
         <GridPane.margin>
             <Insets top="10" bottom="5.0" left="10" right="10.0"/>
         </GridPane.margin>
@@ -35,9 +35,9 @@
             <Insets top="10" bottom="10.0" left="10" right="10.0"/>
         </GridPane.margin>
     </CheckBox>
-    <Button mnemonicParsing="false" onAction="#onSendButtonClick" text="Chat"
+    <Button mnemonicParsing="false" onAction="#onSendButtonClick" text="Send"
             GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.halignment="RIGHT"
-            fx:id="send">
+            fx:id="sendButton">
         <GridPane.margin>
             <Insets top="10" bottom="10.0" left="10" right="10.0"/>
         </GridPane.margin>

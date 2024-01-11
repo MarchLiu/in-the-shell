@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.http.HttpClient;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 public abstract class Server implements AutoCloseable {
     protected String host;
@@ -36,7 +37,7 @@ public abstract class Server implements AutoCloseable {
 
     public abstract List<String> models() throws Exception;
 
-    public abstract Task<String> talk(String input, String model, String system);
+    public abstract CompletableFuture<Try<Response>> talk(Request request, String model, String system);
 
     @Override
     public void close() throws IOException {

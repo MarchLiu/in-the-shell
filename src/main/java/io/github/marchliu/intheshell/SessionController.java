@@ -1,9 +1,15 @@
 package io.github.marchliu.intheshell;
 
-import io.github.marchliu.intheshell.modules.Server;
-import io.github.marchliu.intheshell.modules.Session;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import io.github.marchliu.intheshell.modules.*;
+import jaskell.util.Failure;
+import jaskell.util.Success;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -16,33 +22,61 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Text;
 import one.jpro.platform.mdfx.MarkdownView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class SessionController {
     @FXML
-    private TextArea textArea;
+    private TextArea editor;
 
     @FXML
     ListView<String> listView;
 
     @FXML
-    private Button send;
+    Button sendButton;
 
-    private String sessionId;
+    @FXML
+    CheckBox withContext;
 
     private Session session;
 
-    private StringProperty actor = new SimpleStringProperty();
+    private final ObjectProperty<Response> actor = new SimpleObjectProperty<>();
+
+    private final AtomicReference<Request> latest = new AtomicReference<>();
 
     @FXML
     protected void onSendButtonClick(Event event) {
-        listView.getItems().add(textArea.getText());
+        listView.getItems().add(editor.getText());
         listView.refresh();
-        var task = session.talk(textArea.getText());
-        actor.bind(task.valueProperty());
-        Thread.ofVirtual().start(task);
+        Request request;
+        Message message = actor.get();
+        if (message != null && withContext.isSelected()) {
+            request = new Request(editor.getText(), message.getContext());
+        } else {
+            request = new Request(editor.getText(), new ArrayList<>());
+        }
+        latest.set(request);
+        editor.setEditable(false);
+        sendButton.setDisable(true);
+
+        Thread.ofVirtual().start(() -> {
+            session.talk(request).thenAcceptAsync(result -> {
+                switch (result) {
+                    case Success(var response):
+                        Platform.runLater(() -> actor.set(response));
+                        break;
+                    case Failure(var err):
+                        err.printStackTrace();
+                }
+                Platform.runLater(()->{
+                    editor.setEditable(true);
+                    sendButton.setDisable(false);
+                });
+            });
+        });
     }
 
     public void init(Server server, String model, String templateName) {
@@ -56,7 +90,8 @@ public class SessionController {
             tp.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
             tp.paddingProperty().set(new Insets(0, 10, 10, 10));
             MarkdownView mdv = new MarkdownView();
-            mdv.getStylesheets().add("/com/sandec/mdfx/mdfx-default.css");
+            mdv.getStylesheets().add("/one/jpro/platform/mdfx/mdfx-default.css");
+            mdv.getStylesheets().add("/one/jpro/platform/mdfx/mdfx.css");
             Tab mdTab = new Tab("markdown", mdv);
 
             mdv.mdStringProperty().bind(cell.itemProperty());
@@ -68,12 +103,13 @@ public class SessionController {
             cell.graphicProperty().setValue(tp);
             text.textProperty().bind(cell.itemProperty());
             tp.visibleProperty().bind(cell.itemProperty().isNotNull());
-            text.textProperty().addListener(((observable, oldValue, newValue) -> {
-                text.setWrappingWidth(tp.getWidth() - 64);
-                cell.prefHeight(mdv.getLayoutBounds().getHeight() + 256);
+            cell.itemProperty().addListener(((observable, oldValue, newValue) -> {
+                text.setWrappingWidth(cell.getScene().getWidth() - 64);
+                mdv.setPrefWidth(cell.getScene().getWidth() - 64);
+                cell.prefHeight(mdv.getLayoutBounds().getHeight() + 32);
             }));
             EventHandler<MouseEvent> handler = event -> {
-                if(event.getClickCount() == 2){
+                if (event.getClickCount() == 2) {
                     Clipboard clipboard = Clipboard.getSystemClipboard();
                     Map<DataFormat, Object> content = new HashMap<>();
                     content.put(DataFormat.PLAIN_TEXT, cell.itemProperty().get());
@@ -86,14 +122,22 @@ public class SessionController {
         });
 
         actor.addListener((observable, oldValue, newValue) -> {
-            System.out.println(newValue);
-            listView.getItems().add(newValue);
-            listView.refresh();
-            actor.unbind();
+            if (newValue != null) {
+                listView.getItems().add(newValue.getContent());
+                writeDatabase(latest.get(), newValue);
+                listView.refresh();
+                listView.scrollTo(listView.getItems().size() - 1);
+            }
         });
+
+    }
+
+    public void writeDatabase(Request request, Response response) {
+        System.out.printf("with context length %d \n", request.getContext().size());
+        System.out.printf("- %s \n- %s\n", request.getContent(), response.getContent());
     }
 
     public void onClose() {
-        Session.close(sessionId);
+        Session.close(session.getSessionId());
     }
 }

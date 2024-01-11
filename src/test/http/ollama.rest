@@ -1,0 +1,31 @@
+# curl http://localhost:11434/api/embeddings -d '{
+#  "model": "llama2",
+#  "prompt": "Here is an article about llamas..."
+#}'
+POST http://localhost:11434/api/embeddings
+Content-Type: application/json
+
+{
+  "model": "llama2",
+  "prompt": "Here is an article about llamas..."
+}
+
+###
+
+POST http://localhost:11434/api/embeddings
+Content-Type: application/json
+
+{
+  "model": "dolphin-mixtral:8x7b",
+  "prompt": "Here is an article about llamas..."
+}
+
+###
+
+POST http://localhost:11434/api/embeddings
+Content-Type: application/json
+
+{
+  "model": "oliva",
+  "prompt": "Here is an article about llamas..."
+}

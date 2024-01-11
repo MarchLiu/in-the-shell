@@ -1,21 +1,17 @@
 package io.github.marchliu.intheshell.modules;
 
-import com.fasterxml.jackson.core.PrettyPrinter;
-import io.github.marchliu.intheshell.TalkTask;
 import io.github.marchliu.intheshell.TheShellApplication;
 import jaskell.util.Failure;
-import jaskell.util.ReTriable;
 import jaskell.util.Success;
 import jaskell.util.Try;
 import javafx.concurrent.Task;
 
-import java.io.IOException;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Future;
 
 public class OllamaServer extends Server {
@@ -53,45 +49,39 @@ public class OllamaServer extends Server {
     }
 
     @Override
-    public Task<String> talk(String input, String model, String system) {
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<Try<Response>> talk(Request request, String model, String system) {
         Context context = TheShellApplication.context();
         Map<String, Object> req = new HashMap<>();
-        req.put("prompt", input);
+        req.put("prompt", request.getContent());
         req.put("stream", false);
         req.put("system", system);
         req.put("model", model);
+        req.put("context", request.getContext());
 
         var tryFuture = context.jsonUtils.writeToString(req).map(body -> {
             try (var client = context.httpClient()) {
                 var uri = new URI("http://%s:%d/api/generate".formatted(host, port));
-                var request = HttpRequest.newBuilder()
+                var httpRequest = HttpRequest.newBuilder()
                         .uri(uri)
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(body))
                         .build();
-                return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                        .thenApply(resp -> context.jsonUtils.toMap(resp.body())
-                                .map(m -> m.get("response").toString()));
+
+                return client.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString())
+                        .thenApply(resp -> context.getJsonUtils().toMap(resp.body())
+                                .map(m -> new Response(((String) m.get("response")).strip(),
+                                        (List<Integer>) m.get("context"))));
             }
         });
         return switch (tryFuture) {
-            case Success(var future) -> new TalkTask() {
-                @Override
-                protected String call() throws Exception {
-                    return future.join().get();
-                }
-            };
-            case Failure(var err) -> new TalkTask() {
-                @Override
-                protected String call() throws Exception {
-                    throw err;
-                }
-            };
+            case Success(var future) -> future;
+            case Failure(var err) -> CompletableFuture.failedFuture(err);
         };
     }
 
     public Try<Iterator<String>> stream(String input, String model, String system) {
-        return Try.success(new Iterator<String>() {
+        return Try.success(new Iterator<>() {
             @Override
             public boolean hasNext() {
                 return false;

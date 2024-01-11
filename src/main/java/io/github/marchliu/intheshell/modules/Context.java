@@ -2,6 +2,8 @@ package io.github.marchliu.intheshell.modules;
 
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -15,7 +17,7 @@ public class Context {
     }
 
     public JsonUtils getJsonUtils() {
-        return jsonUtils;
+        return new JsonUtils();
     }
 
     public Executor getExecutor() {
@@ -28,5 +30,6 @@ public class Context {
                 .executor(executor)
                 .build();
     }
+
 
 }

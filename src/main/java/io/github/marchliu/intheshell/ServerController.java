@@ -73,7 +73,7 @@ public class ServerController {
                 stage.setOnCloseRequest(evt -> {
                     controller.onClose();
                 });
-                stage.setTitle("%s(%s:%d): %s".formatted(
+                stage.setTitle("Chat %s(%s:%d): %s".formatted(
                         "Ollama", server.getHost(), server.getPort(), model
                 ));
                 stage.setScene(scene);
@@ -84,13 +84,47 @@ public class ServerController {
         });
         MenuItem tran2CN = new MenuItem("Translate to Chinese");
         tran2CN.setOnAction(event -> {
-            var template = TheShellApplication.context().template("translate to chinese");
-            System.out.println(template);
+            String model = cell.itemProperty().get();
+            try {
+                Stage stage = new Stage();
+                FXMLLoader sessionLoader =
+                        new FXMLLoader(TheShellApplication.class.getResource("session-view.fxml"));
+                Scene scene = new Scene(sessionLoader.load());
+                SessionController controller = sessionLoader.getController();
+                controller.init(server.clone(), model, "translate to chinese");
+                stage.setOnCloseRequest(evt -> {
+                    controller.onClose();
+                });
+                stage.setTitle("翻译为中文 %s(%s:%d): %s".formatted(
+                        "Ollama", server.getHost(), server.getPort(), model
+                ));
+                stage.setScene(scene);
+                stage.show();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         });
         MenuItem tran2EN = new MenuItem("Translate to English");
         tran2EN.setOnAction(event -> {
-            var template = TheShellApplication.context().template("translate to english");
-            System.out.println(template);
+            String model = cell.itemProperty().get();
+            try {
+                Stage stage = new Stage();
+                FXMLLoader sessionLoader =
+                        new FXMLLoader(TheShellApplication.class.getResource("session-view.fxml"));
+                Scene scene = new Scene(sessionLoader.load());
+                SessionController controller = sessionLoader.getController();
+                controller.init(server.clone(), model, "translate to chinese");
+                stage.setOnCloseRequest(evt -> {
+                    controller.onClose();
+                });
+                stage.setTitle("Translate to English %s(%s:%d): %s".formatted(
+                        "Ollama", server.getHost(), server.getPort(), model
+                ));
+                stage.setScene(scene);
+                stage.show();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         });
 
         contextMenu.getItems().add(chatMenu);

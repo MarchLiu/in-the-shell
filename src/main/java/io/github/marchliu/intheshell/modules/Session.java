@@ -1,5 +1,6 @@
 package io.github.marchliu.intheshell.modules;
 
+import jaskell.util.Failure;
 import jaskell.util.Try;
 import javafx.concurrent.Task;
 
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.util.*;
 import java.net.http.HttpRequest;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 sealed public abstract class Session implements Closeable permits OllammaSession  {
     private final static Map<String, Session> sessions = new HashMap<>();
@@ -59,8 +61,8 @@ sealed public abstract class Session implements Closeable permits OllammaSession
         return sessionId;
     }
 
-    public Task<String> talk(String content) {
-        return server.talk(content, this.model, this.systemPrompt);
+    public CompletableFuture<Try<Response>> talk(Request request) {
+        return server.talk(request.apply(template), this.model, this.systemPrompt);
     }
 
     public static Session ollama(String sessionId, String host, int port, String model, String systemPrompt, String template) {

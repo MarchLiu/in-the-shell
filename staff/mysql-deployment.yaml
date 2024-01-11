@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-cluster
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mysql-pod
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql-pod
+    spec:
+      containers:
+        - image: mysql:8.0.29
+          name: mysql-container
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: password
+          ports:
+            - containerPort: 3306

@@ -3,13 +3,11 @@ package io.github.marchliu.intheshell;
 import io.github.marchliu.intheshell.modules.*;
 import jaskell.util.Failure;
 import jaskell.util.Success;
-import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -20,6 +18,7 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 import one.jpro.platform.mdfx.MarkdownView;
 
 import java.util.ArrayList;
@@ -36,16 +35,24 @@ public class SessionController {
     ListView<String> listView;
 
     @FXML
+    ListProperty<String> contextList = new SimpleListProperty<>();
+
+    @FXML
     Button sendButton;
 
     @FXML
     CheckBox withContext;
+
+    @FXML
+    CheckBox keepContent;
 
     private Session session;
 
     private final ObjectProperty<Response> actor = new SimpleObjectProperty<>();
 
     private final AtomicReference<Request> latest = new AtomicReference<>();
+
+    private final ObjectProperty<Thread> task = new SimpleObjectProperty<>();
 
     @FXML
     protected void onSendButtonClick(Event event) {
@@ -61,53 +68,42 @@ public class SessionController {
         latest.set(request);
         editor.setEditable(false);
         sendButton.setDisable(true);
+        sendButton.setText("Waiting...");
+        if (!keepContent.isSelected()) {
+            editor.textProperty().set("");
+        }
 
-        Thread.ofVirtual().start(() -> {
-            session.talk(request).thenAcceptAsync(result -> {
-                switch (result) {
-                    case Success(var response):
-                        Platform.runLater(() -> actor.set(response));
-                        break;
-                    case Failure(var err):
-                        err.printStackTrace();
-                }
-                Platform.runLater(()->{
-                    editor.setEditable(true);
-                    sendButton.setDisable(false);
-                });
-            });
+        var t = Thread.ofVirtual().start(() -> {
+            session.stream(request)
+                    .forEach(entry -> {
+                        switch (entry) {
+                            case Success(var resp):
+                                Platform.runLater(() -> {
+                                    actor.set(resp);
+                                });
+                                break;
+                            case Failure(var err):
+                                err.printStackTrace();
+                        }
+                    });
         });
+        task.set(t);
     }
 
-    public void init(Server server, String model, String templateName) {
+    public void init(Server server, String model, String templateName, Stage stage) {
 
         session = Session.ollama(UUID.randomUUID().toString(), server.getHost(), server.getPort(),
                 model, templateName);
 
         listView.setCellFactory(lv -> {
             ListCell<String> cell = new ListCell<>();
-            TabPane tp = new TabPane();
-            tp.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-            tp.paddingProperty().set(new Insets(0, 10, 10, 10));
+            cell.setOpaqueInsets(new Insets(5, 5, 5, 5));
             MarkdownView mdv = new MarkdownView();
             mdv.getStylesheets().add("/one/jpro/platform/mdfx/mdfx-default.css");
             mdv.getStylesheets().add("/one/jpro/platform/mdfx/mdfx.css");
-            Tab mdTab = new Tab("markdown", mdv);
 
             mdv.mdStringProperty().bind(cell.itemProperty());
-            tp.getTabs().add(mdTab);
-            Text text = new Text();
-            Tab ptTab = new Tab("plain", text);
-            tp.getTabs().add(ptTab);
-            tp.setSide(Side.BOTTOM);
-            cell.graphicProperty().setValue(tp);
-            text.textProperty().bind(cell.itemProperty());
-            tp.visibleProperty().bind(cell.itemProperty().isNotNull());
-            cell.itemProperty().addListener(((observable, oldValue, newValue) -> {
-                text.setWrappingWidth(cell.getScene().getWidth() - 64);
-                mdv.setPrefWidth(cell.getScene().getWidth() - 64);
-                cell.prefHeight(mdv.getLayoutBounds().getHeight() + 32);
-            }));
+            cell.graphicProperty().setValue(mdv);
             EventHandler<MouseEvent> handler = event -> {
                 if (event.getClickCount() == 2) {
                     Clipboard clipboard = Clipboard.getSystemClipboard();
@@ -117,19 +113,31 @@ public class SessionController {
                 }
             };
             mdv.setOnMouseClicked(handler);
-            text.setOnMouseClicked(handler);
             return cell;
         });
 
         actor.addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
-                listView.getItems().add(newValue.getContent());
-                writeDatabase(latest.get(), newValue);
-                listView.refresh();
-                listView.scrollTo(listView.getItems().size() - 1);
+                if (newValue.isStream() && oldValue != null && oldValue.isStream() && !oldValue.isDone()) {
+                    int lastIndex = listView.getItems().size() - 1;
+                    String content = listView.getItems().get(lastIndex) + newValue.getContent();
+                    listView.getItems().set(lastIndex, content);
+                    if (newValue.isDone()) {
+                        writeDatabase(latest.get(), new Response(content, newValue.getContext(), true));
+                        resetScene();
+                    }
+                } else {
+                    listView.getItems().add(newValue.getContent());
+                    resetScene();
+                }
             }
         });
 
+        stage.setOnCloseRequest(event -> {
+            if(task.get() != null && task.get().isAlive()){
+                task.get().interrupt();
+            }
+        });
     }
 
     public void writeDatabase(Request request, Response response) {
@@ -139,5 +147,19 @@ public class SessionController {
 
     public void onClose() {
         Session.close(session.getSessionId());
+    }
+
+    private void resetScene() {
+        Platform.runLater(() -> {
+            sendButton.setText("Send");
+            sendButton.disableProperty().set(false);
+            editor.setDisable(false);
+            editor.setEditable(true);
+            listView.refresh();
+            listView.scrollTo(listView.getItems().size() - 1);
+            if(task.get() != null) {
+                task.set(null);
+            }
+        });
     }
 }

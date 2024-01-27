@@ -15,4 +15,5 @@ module io.github.marchliu.intheshell {
     exports io.github.marchliu.intheshell;
     exports io.github.marchliu.intheshell.modules;
     opens io.github.marchliu.intheshell.modules to javafx.fxml;
+
 }

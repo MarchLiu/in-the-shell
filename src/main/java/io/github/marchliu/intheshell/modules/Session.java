@@ -10,6 +10,7 @@ import java.util.*;
 import java.net.http.HttpRequest;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.stream.Stream;
 
 sealed public abstract class Session implements Closeable permits OllammaSession  {
     private final static Map<String, Session> sessions = new HashMap<>();
@@ -63,6 +64,10 @@ sealed public abstract class Session implements Closeable permits OllammaSession
 
     public CompletableFuture<Try<Response>> talk(Request request) {
         return server.talk(request.apply(template), this.model, this.systemPrompt);
+    }
+
+    public Stream<Try<Response>> stream(Request request) {
+        return server.stream(request.apply(template), this.model, this.systemPrompt);
     }
 
     public static Session ollama(String sessionId, String host, int port, String model, String systemPrompt, String template) {

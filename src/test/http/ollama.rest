@@ -26,6 +26,6 @@ POST http://localhost:11434/api/embeddings
 Content-Type: application/json
 
 {
-  "model": "oliva",
-  "prompt": "Here is an article about llamas..."
+  "model": "mistral:7b",
+  "prompt": "generate row dynamic"
 }

@@ -8,7 +8,9 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -60,72 +62,13 @@ public class ServerController {
     private void bindContextMenu(ListCell<String> cell) {
         ContextMenu contextMenu = new ContextMenu();
         MenuItem chatMenu = new MenuItem("Chat");
-
-        chatMenu.setOnAction(event -> {
-            String model = cell.itemProperty().get();
-            try {
-                Stage stage = new Stage();
-                FXMLLoader sessionLoader =
-                        new FXMLLoader(TheShellApplication.class.getResource("session-view.fxml"));
-                Scene scene = new Scene(sessionLoader.load());
-                SessionController controller = sessionLoader.getController();
-                controller.init(server.clone(), model, "chat");
-                stage.setOnCloseRequest(evt -> {
-                    controller.onClose();
-                });
-                stage.setTitle("Chat %s(%s:%d): %s".formatted(
-                        "Ollama", server.getHost(), server.getPort(), model
-                ));
-                stage.setScene(scene);
-                stage.show();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        chatMenu.setOnAction(onMenuClicked(cell, "chat", "Chat", true, true));
         MenuItem tran2CN = new MenuItem("Translate to Chinese");
-        tran2CN.setOnAction(event -> {
-            String model = cell.itemProperty().get();
-            try {
-                Stage stage = new Stage();
-                FXMLLoader sessionLoader =
-                        new FXMLLoader(TheShellApplication.class.getResource("session-view.fxml"));
-                Scene scene = new Scene(sessionLoader.load());
-                SessionController controller = sessionLoader.getController();
-                controller.init(server.clone(), model, "translate to chinese");
-                stage.setOnCloseRequest(evt -> {
-                    controller.onClose();
-                });
-                stage.setTitle("翻译为中文 %s(%s:%d): %s".formatted(
-                        "Ollama", server.getHost(), server.getPort(), model
-                ));
-                stage.setScene(scene);
-                stage.show();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        tran2CN.setOnAction(onMenuClicked(cell, "translate to chinese", "翻译为中文",
+                false, false));
         MenuItem tran2EN = new MenuItem("Translate to English");
-        tran2EN.setOnAction(event -> {
-            String model = cell.itemProperty().get();
-            try {
-                Stage stage = new Stage();
-                FXMLLoader sessionLoader =
-                        new FXMLLoader(TheShellApplication.class.getResource("session-view.fxml"));
-                Scene scene = new Scene(sessionLoader.load());
-                SessionController controller = sessionLoader.getController();
-                controller.init(server.clone(), model, "translate to chinese");
-                stage.setOnCloseRequest(evt -> {
-                    controller.onClose();
-                });
-                stage.setTitle("Translate to English %s(%s:%d): %s".formatted(
-                        "Ollama", server.getHost(), server.getPort(), model
-                ));
-                stage.setScene(scene);
-                stage.show();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        tran2EN.setOnAction(onMenuClicked(cell, "translate to english", "Translate to English",
+                true, true));
 
         contextMenu.getItems().add(chatMenu);
         contextMenu.getItems().add(tran2CN);
@@ -138,9 +81,38 @@ public class ServerController {
                 cell.setContextMenu(contextMenu);
             }
         });
+
     }
 
     public void close() throws IOException {
         server.close();
+    }
+
+    private EventHandler<ActionEvent> onMenuClicked(ListCell<String> cell, String templateName,
+                                                    String title, boolean withContext,
+                                                    boolean keepContent) {
+        return event -> {
+            String model = cell.itemProperty().get();
+            try {
+                Stage stage = new Stage();
+                FXMLLoader sessionLoader =
+                        new FXMLLoader(TheShellApplication.class.getResource("session-view.fxml"));
+                Scene scene = new Scene(sessionLoader.load());
+                SessionController controller = sessionLoader.getController();
+                controller.init(server.clone(), model, templateName, stage);
+                controller.withContext.selectedProperty().set(withContext);
+                controller.keepContent.selectedProperty().set(keepContent);
+                stage.setOnCloseRequest(evt -> {
+                    controller.onClose();
+                });
+                stage.setTitle(title + " %s(%s:%d): %s".formatted(
+                        "Ollama", server.getHost(), server.getPort(), model
+                ));
+                stage.setScene(scene);
+                stage.show();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        };
     }
 }

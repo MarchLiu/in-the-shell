@@ -5,42 +5,47 @@
 <?import javafx.scene.layout.*?>
 
 
-<GridPane style="-fx-padding: 10 10 10 10; "
-          xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.marchliu.intheshell.SessionController">
-    <ListView style="-fx-padding: 5 5 5 5;"
-              fx:id="listView"
-              GridPane.columnIndex="0"
-              GridPane.rowIndex="0"
-              GridPane.columnSpan="3"
-              GridPane.vgrow="ALWAYS"
-              GridPane.hgrow="ALWAYS">
-        <GridPane.margin>
-            <Insets top="10" bottom="10.0" left="10" right="10.0"/>
-        </GridPane.margin>
-    </ListView>
-    <TextArea fx:id="editor" GridPane.columnIndex="0" GridPane.rowIndex="1"
-              GridPane.rowSpan="3" GridPane.hgrow="ALWAYS">
-        <GridPane.margin>
-            <Insets top="10" bottom="5.0" left="10" right="10.0"/>
-        </GridPane.margin>
-    </TextArea>
-    <CheckBox text="with context" GridPane.columnIndex="1" GridPane.rowIndex="1" fx:id="withContext">
-        <GridPane.margin>
-            <Insets top="10" bottom="5.0" left="10" right="10.0"/>
-        </GridPane.margin>
-    </CheckBox>
-    <CheckBox prefHeight="37.0" prefWidth="135.0" text="auto clean if too long"
-              GridPane.columnIndex="1" GridPane.rowIndex="2">
-        <GridPane.margin>
-            <Insets top="10" bottom="10.0" left="10" right="10.0"/>
-        </GridPane.margin>
-    </CheckBox>
-    <Button mnemonicParsing="false" onAction="#onSendButtonClick" text="Send"
-            GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.halignment="RIGHT"
-            fx:id="sendButton">
-        <GridPane.margin>
-            <Insets top="10" bottom="10.0" left="10" right="10.0"/>
-        </GridPane.margin>
-    </Button>
-</GridPane>
+<SplitPane style="-fx-padding: 10 10 10 10; "
+           xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.marchliu.intheshell.SessionController">
+    <StackPane>
+        <VBox>
+            <TextArea fx:id="editor" VBox.vgrow="ALWAYS"
+                      wrapText="true">
+                <VBox.margin>
+                    <Insets top="5" bottom="5" left="5" right="5"/>
+                </VBox.margin>
+            </TextArea>
+            <Button mnemonicParsing="false" onAction="#onSendButtonClick" text="Send"
+                    GridPane.columnIndex="0" GridPane.rowIndex="4"
+                    fx:id="sendButton">
+                <VBox.margin>
+                    <Insets top="5" bottom="5" left="5" right="10"/>
+                </VBox.margin>
+            </Button>
+            <CheckBox text="with context" fx:id="withContext">
+                <VBox.margin>
+                    <Insets top="5" bottom="5" left="5" right="10"/>
+                </VBox.margin>
+            </CheckBox>
+            <CheckBox text="keep content after send" fx:id="keepContent">
+                <VBox.margin>
+                    <Insets top="5" bottom="5" left="5" right="10"/>
+                </VBox.margin>
+            </CheckBox>
+        </VBox>
+    </StackPane>
+    <StackPane>
+        <ListView style="-fx-padding: 5 5 5 5;"
+                  fx:id="listView"
+                  GridPane.columnIndex="1"
+                  GridPane.rowIndex="0"
+                  GridPane.rowSpan="7"
+                  GridPane.hgrow="ALWAYS"
+                  GridPane.vgrow="ALWAYS">
+            <StackPane.margin>
+                <Insets top="5" bottom="5.0" left="5" right="5.0"/>
+            </StackPane.margin>
+        </ListView>
+    </StackPane>
+</SplitPane>
 

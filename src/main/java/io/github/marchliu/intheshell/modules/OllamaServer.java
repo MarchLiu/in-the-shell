@@ -1,18 +1,22 @@
 package io.github.marchliu.intheshell.modules;
 
+import com.fasterxml.jackson.core.PrettyPrinter;
 import io.github.marchliu.intheshell.TheShellApplication;
 import jaskell.util.Failure;
 import jaskell.util.Success;
 import jaskell.util.Try;
 import javafx.concurrent.Task;
 
+import java.io.InputStream;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Future;
+import java.util.stream.Stream;
 
 public class OllamaServer extends Server {
     public OllamaServer() {
@@ -77,6 +81,47 @@ public class OllamaServer extends Server {
         return switch (tryFuture) {
             case Success(var future) -> future;
             case Failure(var err) -> CompletableFuture.failedFuture(err);
+        };
+    }
+
+    @SuppressWarnings("unchecked")
+    public Stream<Try<Response>> stream(Request request, String model, String system) {
+        Context context = TheShellApplication.context();
+        Map<String, Object> req = new HashMap<>();
+        req.put("prompt", request.getContent());
+        req.put("stream", true);
+        req.put("system", system);
+        req.put("model", model);
+        req.put("context", request.getContext());
+
+        var tryStream = context.jsonUtils.writeToString(req).map(body -> {
+            var uri = new URI("http://%s:%d/api/generate".formatted(host, port));
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .build();
+            return client.send(httpRequest,
+                    HttpResponse.BodyHandlers.ofLines());
+
+        });
+        return switch (tryStream) {
+            case Success(var resp) -> resp.body()
+                    .map(line -> context.getJsonUtils()
+                            .toMap(line)
+                            .map(m -> {
+                                if (m.containsKey("done") & !(Boolean) m.get("done")) {
+                                    return new Response(((String) m.get("response")),
+                                            (List<Integer>) m.get("context"), false);
+                                } else {
+                                    return new Response(((String) m.get("response")),
+                                            (List<Integer>) m.get("context"), true);
+                                }
+                            }));
+            case Failure(var err) -> {
+                Try<Response> re = Try.failure(err);
+                yield Stream.of(re);
+            }
         };
     }
 

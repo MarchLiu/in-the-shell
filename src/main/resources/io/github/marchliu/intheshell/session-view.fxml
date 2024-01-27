@@ -10,7 +10,7 @@
     <StackPane>
         <VBox>
             <TextArea fx:id="editor" VBox.vgrow="ALWAYS"
-                      wrapText="true">
+                      wrapText="true" onKeyPressed="#onEditorKeyPress">
                 <VBox.margin>
                     <Insets top="5" bottom="5" left="5" right="5"/>
                 </VBox.margin>

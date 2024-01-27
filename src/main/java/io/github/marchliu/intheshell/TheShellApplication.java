@@ -15,7 +15,7 @@ public class TheShellApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(TheShellApplication.class.getResource("sessions-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(TheShellApplication.class.getResource("models-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         ServerController controller = fxmlLoader.getController();
         stage.setScene(scene);

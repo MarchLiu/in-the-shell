@@ -4,20 +4,16 @@ import io.github.marchliu.intheshell.modules.*;
 import jaskell.util.Failure;
 import jaskell.util.Success;
 import javafx.application.Platform;
-import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import javafx.geometry.Side;
 import javafx.scene.control.*;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.DataFormat;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.text.Text;
+import javafx.scene.input.*;
 import javafx.stage.Stage;
 import one.jpro.platform.mdfx.MarkdownView;
 
@@ -27,6 +23,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+
 public class SessionController {
     @FXML
     private TextArea editor;
@@ -35,7 +32,7 @@ public class SessionController {
     ListView<String> listView;
 
     @FXML
-    ListProperty<String> contextList = new SimpleListProperty<>();
+    ObservableList<String> contextList = FXCollections.observableArrayList();
 
     @FXML
     Button sendButton;
@@ -56,7 +53,7 @@ public class SessionController {
 
     @FXML
     protected void onSendButtonClick(Event event) {
-        listView.getItems().add(editor.getText());
+        contextList.add(editor.getText());
         listView.refresh();
         Request request;
         Message message = actor.get();
@@ -94,15 +91,17 @@ public class SessionController {
 
         session = Session.ollama(UUID.randomUUID().toString(), server.getHost(), server.getPort(),
                 model, templateName);
-
+        listView.setItems(contextList);
         listView.setCellFactory(lv -> {
             ListCell<String> cell = new ListCell<>();
             cell.setOpaqueInsets(new Insets(5, 5, 5, 5));
             MarkdownView mdv = new MarkdownView();
+            mdv.fillWidthProperty().set(true);
+            mdv.maxWidthProperty().bind(cell.widthProperty());
             mdv.getStylesheets().add("/one/jpro/platform/mdfx/mdfx-default.css");
             mdv.getStylesheets().add("/one/jpro/platform/mdfx/mdfx.css");
-
             mdv.mdStringProperty().bind(cell.itemProperty());
+
             cell.graphicProperty().setValue(mdv);
             EventHandler<MouseEvent> handler = event -> {
                 if (event.getClickCount() == 2) {
@@ -119,9 +118,9 @@ public class SessionController {
         actor.addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
                 if (newValue.isStream() && oldValue != null && oldValue.isStream() && !oldValue.isDone()) {
-                    int lastIndex = listView.getItems().size() - 1;
-                    String content = listView.getItems().get(lastIndex) + newValue.getContent();
-                    listView.getItems().set(lastIndex, content);
+                    int lastIndex = contextList.size() - 1;
+                    String content = contextList.getLast() + newValue.getContent();
+                    contextList.set(lastIndex, content);
                     if (newValue.isDone()) {
                         writeDatabase(latest.get(), new Response(content, newValue.getContext(), true));
                         resetScene();
@@ -134,7 +133,7 @@ public class SessionController {
         });
 
         stage.setOnCloseRequest(event -> {
-            if(task.get() != null && task.get().isAlive()){
+            if (task.get() != null && task.get().isAlive()) {
                 task.get().interrupt();
             }
         });
@@ -157,9 +156,34 @@ public class SessionController {
             editor.setEditable(true);
             listView.refresh();
             listView.scrollTo(listView.getItems().size() - 1);
-            if(task.get() != null) {
+            if (task.get() != null) {
                 task.set(null);
             }
         });
+    }
+
+    @FXML
+    protected void onEditorKeyPress(KeyEvent event) {
+        int currentPosition = editor.getCaretPosition();
+        if (event.getCode() == KeyCode.E && event.isControlDown()) {
+            int nextLineIndex = editor.getText().indexOf('\n', currentPosition);
+            int endOfLine = (nextLineIndex == -1) ? editor.getText().length() : nextLineIndex;
+            editor.positionCaret(endOfLine);
+        } else if (event.getCode() == KeyCode.A && event.isControlDown()) {
+            int startOfLine = editor.getText(0, currentPosition).lastIndexOf('\n');
+            editor.positionCaret(startOfLine + 1);
+
+        } else if (event.getCode() == KeyCode.K && event.isControlDown()) {
+            // Ctrl-K shortcut implementation goes here
+            int nextLineIndex = editor.getText().indexOf('\n', currentPosition);
+            int endOfLine = (nextLineIndex == -1) ? editor.getText().length() : nextLineIndex;
+            if(currentPosition == endOfLine){
+                if(currentPosition < editor.getText().length()) {
+                    editor.replaceText(currentPosition, currentPosition+1, "");
+                }
+            } else {
+                editor.replaceText(currentPosition, endOfLine, "");
+            }
+        }
     }
 }

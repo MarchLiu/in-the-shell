@@ -14,6 +14,8 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
+import javafx.scene.layout.Border;
+import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
 import one.jpro.platform.mdfx.MarkdownView;
 
@@ -95,12 +97,17 @@ public class SessionController {
         listView.setCellFactory(lv -> {
             ListCell<String> cell = new ListCell<>();
             cell.setOpaqueInsets(new Insets(5, 5, 5, 5));
+            cell.setStyle("""
+                            -fx-border-color:darkgray;-fx-border-radius: 5px;
+                            -fx-background-radius: 5;
+                    """);
             MarkdownView mdv = new MarkdownView();
             mdv.fillWidthProperty().set(true);
-            mdv.maxWidthProperty().bind(cell.widthProperty());
+            mdv.maxWidthProperty().bind(cell.widthProperty().subtract(3));
             mdv.getStylesheets().add("/one/jpro/platform/mdfx/mdfx-default.css");
             mdv.getStylesheets().add("/one/jpro/platform/mdfx/mdfx.css");
             mdv.mdStringProperty().bind(cell.itemProperty());
+            mdv.maxWidthProperty().bind(cell.widthProperty().subtract(10));
 
             cell.graphicProperty().setValue(mdv);
             EventHandler<MouseEvent> handler = event -> {

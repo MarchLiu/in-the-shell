@@ -1,21 +1,18 @@
 package io.github.marchliu.intheshell.modules;
 
-import com.fasterxml.jackson.core.PrettyPrinter;
 import io.github.marchliu.intheshell.TheShellApplication;
+import io.github.marchliu.intheshell.modules.generate.Context;
+import io.github.marchliu.intheshell.modules.generate.Request;
+import io.github.marchliu.intheshell.modules.generate.Response;
 import jaskell.util.Failure;
 import jaskell.util.Success;
 import jaskell.util.Try;
-import javafx.concurrent.Task;
 
-import java.io.InputStream;
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 public class OllamaServer extends Server {
@@ -39,7 +36,7 @@ public class OllamaServer extends Server {
                 .join();
         var body = resp.body();
         List<String> result = new ArrayList<>();
-        var node = context.jsonUtils.toNode(body).get();
+        var node = context.getJsonUtils().toNode(body).get();
         var models = node.get("models");
         for (int idx = 0; idx < models.size(); idx++) {
             result.add(models.get(idx).get("name").asText());
@@ -63,7 +60,7 @@ public class OllamaServer extends Server {
         req.put("model", model);
         req.put("context", request.getContext());
 
-        var tryFuture = context.jsonUtils.writeToString(req).map(body -> {
+        var tryFuture = context.getJsonUtils().writeToString(req).map(body -> {
             try (var client = context.httpClient()) {
                 var uri = new URI("http://%s:%d/api/generate".formatted(host, port));
                 var httpRequest = HttpRequest.newBuilder()
@@ -94,7 +91,7 @@ public class OllamaServer extends Server {
         req.put("model", model);
         req.put("context", request.getContext());
 
-        var tryStream = context.jsonUtils.writeToString(req).map(body -> {
+        var tryStream = context.getJsonUtils().writeToString(req).map(body -> {
             var uri = new URI("http://%s:%d/api/generate".formatted(host, port));
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(uri)

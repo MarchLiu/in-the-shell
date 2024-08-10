@@ -1,6 +1,6 @@
 package io.github.marchliu.intheshell;
 
-import io.github.marchliu.intheshell.modules.Context;
+import io.github.marchliu.intheshell.modules.generate.Context;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;

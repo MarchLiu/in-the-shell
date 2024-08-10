@@ -1,18 +1,17 @@
-package io.github.marchliu.intheshell.modules;
+package io.github.marchliu.intheshell.modules.generate;
 
-import jaskell.util.Failure;
+import io.github.marchliu.intheshell.modules.OllamaServer;
+import io.github.marchliu.intheshell.modules.OllammaSession;
+import io.github.marchliu.intheshell.modules.Server;
 import jaskell.util.Try;
-import javafx.concurrent.Task;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
-import java.net.http.HttpRequest;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
-sealed public abstract class Session implements Closeable permits OllammaSession  {
+sealed public abstract class Session implements Closeable permits OllammaSession {
     private final static Map<String, Session> sessions = new HashMap<>();
 
     protected String type = "ollama";

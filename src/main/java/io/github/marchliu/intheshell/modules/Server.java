@@ -1,14 +1,14 @@
 package io.github.marchliu.intheshell.modules;
 
 import io.github.marchliu.intheshell.TheShellApplication;
+import io.github.marchliu.intheshell.modules.generate.Request;
+import io.github.marchliu.intheshell.modules.generate.Response;
 import jaskell.util.Try;
-import javafx.concurrent.Task;
 
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 public abstract class Server implements AutoCloseable {

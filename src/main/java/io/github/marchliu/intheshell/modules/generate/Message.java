@@ -1,4 +1,4 @@
-package io.github.marchliu.intheshell.modules;
+package io.github.marchliu.intheshell.modules.generate;
 
 import java.time.LocalDateTime;
 import java.util.List;

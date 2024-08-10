@@ -1,4 +1,4 @@
-package io.github.marchliu.intheshell.modules;
+package io.github.marchliu.intheshell.modules.generate;
 
 import jaskell.util.Try;
 import javafx.concurrent.Task;

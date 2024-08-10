@@ -29,3 +29,14 @@ Content-Type: application/json
   "model": "mistral:7b",
   "prompt": "generate row dynamic"
 }
+
+###
+
+POST http://localhost:11434/api/generate
+Content-Type: application/json
+
+{
+  "model": "phi3:mini",
+  "prompt": "why object response is nulptr when a http post",
+  "stream": false
+}

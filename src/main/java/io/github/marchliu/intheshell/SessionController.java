@@ -1,6 +1,7 @@
 package io.github.marchliu.intheshell;
 
-import io.github.marchliu.intheshell.modules.*;
+import io.github.marchliu.intheshell.modules.Server;
+import io.github.marchliu.intheshell.modules.generate.*;
 import jaskell.util.Failure;
 import jaskell.util.Success;
 import javafx.application.Platform;
@@ -14,8 +15,6 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
-import javafx.scene.layout.Border;
-import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
 import one.jpro.platform.mdfx.MarkdownView;
 

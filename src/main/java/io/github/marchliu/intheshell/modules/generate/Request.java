@@ -1,7 +1,6 @@
-package io.github.marchliu.intheshell.modules;
+package io.github.marchliu.intheshell.modules.generate;
 
 import java.util.List;
-import java.util.Optional;
 
 final public class Request extends Message {
 

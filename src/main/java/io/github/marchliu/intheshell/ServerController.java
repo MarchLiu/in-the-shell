@@ -2,14 +2,11 @@ package io.github.marchliu.intheshell;
 
 import io.github.marchliu.intheshell.modules.OllamaServer;
 import io.github.marchliu.intheshell.modules.Server;
-import io.github.marchliu.intheshell.modules.Session;
-import io.github.marchliu.intheshell.modules.Templates;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -22,8 +19,6 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
-import java.util.Stack;
 
 public class ServerController {
     @FXML
@@ -69,10 +64,18 @@ public class ServerController {
         MenuItem tran2EN = new MenuItem("Translate to English");
         tran2EN.setOnAction(onMenuClicked(cell, "translate to english", "Translate to English",
                 true, true));
+        MenuItem jUnit = new MenuItem("Create Junit Teste");
+        tran2EN.setOnAction(onMenuClicked(cell, "Generate Junit", "Junit Test",
+                true, true));
+        MenuItem pyUnit = new MenuItem("Create Python Unit Test");
+        tran2EN.setOnAction(onMenuClicked(cell, "Generate PyUnit", "Python Unit Test",
+                true, true));
 
         contextMenu.getItems().add(chatMenu);
         contextMenu.getItems().add(tran2CN);
         contextMenu.getItems().add(tran2EN);
+        contextMenu.getItems().add(jUnit);
+        contextMenu.getItems().add(pyUnit);
 
         cell.emptyProperty().addListener((obs, wasEmpty, isNowEmpty) -> {
             if (isNowEmpty) {

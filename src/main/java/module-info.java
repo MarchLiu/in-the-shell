@@ -10,10 +10,13 @@ module io.github.marchliu.intheshell {
     requires java.net.http;
     requires jpro.webapi;
     requires one.jpro.platform.mdfx;
+    requires typesafe.config;
 
     opens io.github.marchliu.intheshell to javafx.fxml;
     exports io.github.marchliu.intheshell;
     exports io.github.marchliu.intheshell.modules;
     opens io.github.marchliu.intheshell.modules to javafx.fxml;
+    exports io.github.marchliu.intheshell.modules.generate;
+    opens io.github.marchliu.intheshell.modules.generate to javafx.fxml;
 
 }

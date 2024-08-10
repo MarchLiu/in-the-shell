@@ -1,4 +1,4 @@
-package io.github.marchliu.intheshell.modules;
+package io.github.marchliu.intheshell.modules.generate;
 
 public class Template {
     String template;

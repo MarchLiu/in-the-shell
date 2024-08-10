@@ -1,4 +1,4 @@
-package io.github.marchliu.intheshell.modules;
+package io.github.marchliu.intheshell.modules.generate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +12,18 @@ public class Templates {
         this.templates.put("chat", chat());
         this.templates.put("translate to chinese", "翻译为中文\"\"\"%s\"\"\"");
         this.templates.put("translate to english", "translate to english\"\"\"%s\"\"\"");
+        this.templates.put("Generate Junit", """
+                Generate Junit test for Java code at below
+                ```java
+                %s
+                ```
+                """);
+        this.templates.put("\"Generate PyUnit", """
+                Generate Python Unit test for Python code at below
+                ```python
+                %s
+                ```
+                """);
 
     }
 
